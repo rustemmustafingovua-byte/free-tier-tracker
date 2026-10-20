@@ -1,0 +1,43 @@
+{
+  "name": "free-tier-tracker",
+  "version": "0.1.0",
+  "description": "Free tiers do not warn you: the model just answers 402 in the middle of a run. free-tier-tracker keeps a local ledger of what each provider has left, learns from the failures you already hit, and tells the agent to stop using a provider that is done for the day.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "free-tier-tracker": "bin/free-tier-tracker.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "free-tier",
+    "quota",
+    "limits",
+    "agents",
+    "cost-control",
+    "monitoring",
+    "llm"
+  ],
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "node --check src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rustemmustafingovua-byte/free-tier-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rustemmustafingovua-byte/free-tier-tracker/issues"
+  },
+  "homepage": "https://github.com/rustemmustafingovua-byte/free-tier-tracker"
+}
