@@ -44,6 +44,30 @@ free-tier-tracker note "Free 10M tokens used"
 free-tier-tracker watch
 ```
 
+## CLI
+
+```
+free-tier-tracker — Know your free quota before it runs out.
+
+USAGE
+  free-tier-tracker status
+  free-tier-tracker note "Free 10M tokens used"
+  free-tier-tracker spend apinex 12000
+  free-tier-tracker reset apinex
+  free-tier-tracker watch
+
+COMMANDS / OPTIONS
+  status                     what is left of every known free tier
+  note <message>             learn a limit failure from a message
+  spend <provider> <tokens>  record normal usage
+  reset <provider>           clear the exhausted flag
+  watch                      probe the APInex pool in one request
+
+State is kept in ~/.config/free-tier-tracker/state.json.
+
+MIT · https://github.com/rustemmustafingovua-byte
+```
+
 ## Part of a portfolio
 
 | Project | What it does |
