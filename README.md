@@ -23,9 +23,18 @@ Free tiers do not warn you: the model just answers 402 in the middle of a run. f
 ## Install
 
 ```bash
-npm i -g free-tier-tracker
+# tarball из релиза: без токена и без npm-логина
+npm i -g https://github.com/rustemmustafingovua-byte/free-tier-tracker/releases/download/v0.1.0/free-tier-tracker-0.1.0.tgz
 ```
 
+<details>
+<summary>Через GitHub Packages</summary>
+
+```bash
+npm i -g @rustemmustafingovua-byte/free-tier-tracker --registry=https://npm.pkg.github.com
+```
+
+</details>
 ## What it does
 
 | | |
