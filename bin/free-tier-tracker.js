@@ -10,6 +10,19 @@
  */
 import { Tracker, detectLimit } from "../src/index.js"
 
+// --- CLI shell: --help / --version -------------------------------------------
+const HELP = "free-tier-tracker — Know your free quota before it runs out.\n\nUSAGE\n  free-tier-tracker status\n  free-tier-tracker note \"Free 10M tokens used\"\n  free-tier-tracker spend apinex 12000\n  free-tier-tracker reset apinex\n  free-tier-tracker watch\n\nCOMMANDS / OPTIONS\n  status                     what is left of every known free tier\n  note <message>             learn a limit failure from a message\n  spend <provider> <tokens>  record normal usage\n  reset <provider>           clear the exhausted flag\n  watch                      probe the APInex pool in one request\n\nState is kept in ~/.config/free-tier-tracker/state.json.\n\nMIT · https://github.com/rustemmustafingovua-byte"
+const VERSION = "0.1.0"
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(HELP)
+  process.exit(0)
+}
+if (process.argv.includes("--version") || process.argv.includes("-V")) {
+  console.log(VERSION)
+  process.exit(0)
+}
+
+
 const argv = process.argv.slice(2)
 const cmd = argv[0] || "status"
 const tracker = new Tracker()
