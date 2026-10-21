@@ -20,6 +20,25 @@
 
 Free tiers do not warn you: the model just answers 402 in the middle of a run. free-tier-tracker keeps a local ledger of what each provider has left, learns from the failures you already hit, and tells the agent to stop using a provider that is done for the day.
 
+### v0.2.0 — live quota, not manual notes
+
+The tracker now asks the providers directly instead of waiting for a failure:
+
+```bash
+free-tier-tracker refresh   # опросить APInex и BeatAPI
+free-tier-tracker status    # показать остаток, rpm и предупреждения
+```
+
+| Provider | Source | What we read |
+|---|---|---|
+| APInex | `GET /v1/balance` | balance, rpm, plan, spent |
+| BeatAPI | `GET /v1/usage` | credit balance, spent, tasks |
+
+Keys are read from `APINEX_API_KEY` / `BEATAPI_API_KEY`, or from
+`~/.config/opencode/secrets/{apinex,beatapi}.key` if the environment is empty.
+No key — no crash: the tracker says it could not reach the provider and keeps the
+last known numbers.
+
 ## Install
 
 ```bash

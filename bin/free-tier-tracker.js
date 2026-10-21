@@ -10,6 +10,9 @@
  */
 import { Tracker, detectLimit } from "../src/index.js"
 
+const ok = (s) => `\x1b[32m${s}\x1b[0m`
+const warn = (s) => `\x1b[33m${s}\x1b[0m`
+
 // --- CLI shell: --help / --version -------------------------------------------
 const HELP = "free-tier-tracker — Know your free quota before it runs out.\n\nUSAGE\n  free-tier-tracker status\n  free-tier-tracker note \"Free 10M tokens used\"\n  free-tier-tracker spend apinex 12000\n  free-tier-tracker reset apinex\n  free-tier-tracker watch\n\nCOMMANDS / OPTIONS\n  status                     what is left of every known free tier\n  note <message>             learn a limit failure from a message\n  spend <provider> <tokens>  record normal usage\n  reset <provider>           clear the exhausted flag\n  watch                      probe the APInex pool in one request\n\nState is kept in ~/.config/free-tier-tracker/state.json.\n\nMIT · https://github.com/rustemmustafingovua-byte"
 const VERSION = "0.1.0"
@@ -33,8 +36,10 @@ switch (cmd) {
     console.log(`\nday ${s.day}\n`)
     for (const p of s.providers) {
       const bar = p.ratio === null ? "  —  " : "█".repeat(Math.round(p.ratio * 12)).padEnd(12, "░")
+      const live = p.live ? `  $${p.live.balanceUsd}` : ""
+      const state = p.exhausted ? "EXHAUSTED" : p.warn ? "low" : ""
       console.log(
-        `  ${p.provider.padEnd(9)} ${bar} ${p.ratio === null ? "" : Math.round(p.ratio * 100) + "%"}  rpm ${String(p.rpm ?? "-").padEnd(3)} ${p.exhausted ? "EXHAUSTED" : p.warn ? "low" : ""}`,
+        `  ${p.provider.padEnd(9)} ${bar} ${p.ratio === null ? "  —  " : String(Math.round(p.ratio * 100)).padStart(3) + "%"}  rpm ${String(p.live?.rpm ?? p.rpm ?? "-").padEnd(3)} ${live}${state ? " " + state : ""}`,
       )
     }
     const w = tracker.warning()
@@ -42,6 +47,18 @@ switch (cmd) {
     console.log("")
     break
   }
+  case "refresh": {
+    const results = await tracker.refresh()
+    for (const [id, r] of Object.entries(results)) {
+      if (r.ok) {
+        console.log(ok(`${id}: $${r.balanceUsd} (rpm ${r.rpm}${r.plan ? ", план " + r.plan : ""})`))
+      } else {
+        console.log(warn(`${id}: не опросили — ${r.reason}`))
+      }
+    }
+    break
+  }
+
   case "note": {
     const text = argv.slice(1).join(" ")
     const d = detectLimit(text)

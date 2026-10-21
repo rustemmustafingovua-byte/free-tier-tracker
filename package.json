@@ -1,7 +1,7 @@
 {
   "name": "free-tier-tracker",
-  "version": "0.1.0",
-  "description": "Free tiers do not warn you: the model just answers 402 in the middle of a run. free-tier-tracker keeps a local ledger of what each provider has left, learns from the failures you already hit, and tells the agent to stop using a provider that is done for the day.",
+  "version": "0.2.0",
+  "description": "Know your free quota before it runs out - now with live probes of APInex and BeatAPI instead of manual notes.",
   "type": "module",
   "license": "MIT",
   "bin": {

@@ -12,6 +12,76 @@ import { join } from "node:path"
 
 export const DEFAULT_STATE = join(homedir(), ".config", "free-tier-tracker", "state.json")
 
+/**
+ * Живые пробы провайдеров: сколько на самом деле осталось квоты.
+ * Ключ берётся из переменной окружения, иначе из стандартного пути секретов.
+ */
+export const PROBES = {
+  apinex: {
+    label: "APInex",
+    url: "https://api.apinex.bond/v1/balance",
+    env: "APINEX_API_KEY",
+    secret: "apinex.key",
+    parse(j) {
+      return {
+        balanceUsd: Number(j?.balance_usd ?? 0),
+        spentUsd: Number(j?.api_key?.spent_usd ?? 0),
+        rpm: Number(j?.rpm ?? 0),
+        plan: j?.rpm_plan ?? null,
+        exhausted: Number(j?.balance_usd ?? 0) <= 0,
+      }
+    },
+  },
+  beatapi: {
+    label: "BeatAPI",
+    url: "https://api.beatapi.io/v1/usage",
+    env: "BEATAPI_API_KEY",
+    secret: "beatapi.key",
+    parse(j) {
+      return {
+        balanceUsd: Number(j?.data?.credit_balance ?? 0),
+        spentUsd: Number(j?.data?.credits_spent ?? j?.data?.credits_used ?? 0),
+        rpm: 1,
+        plan: "free",
+        exhausted: Number(j?.data?.credit_balance ?? 0) <= 0,
+      }
+    },
+  },
+}
+
+const SECRETS_DIR = join(homedir(), ".config", "opencode", "secrets")
+
+/** Ключ провайдера: переменная окружения или файл секрета. */
+export function probeKey(provider) {
+  const p = PROBES[provider]
+  if (!p) return null
+  if (process.env[p.env]) return process.env[p.env].trim()
+  try {
+    const f = join(SECRETS_DIR, p.secret)
+    if (existsSync(f)) return readFileSync(f, "utf8").trim()
+  } catch {}
+  return null
+}
+
+/** Спросить провайдера про остаток квоты. */
+export async function probeProvider(provider, { fetchImpl = fetch, timeoutMs = 12000 } = {}) {
+  const p = PROBES[provider]
+  if (!p) return { provider, ok: false, reason: "нет пробы для провайдера" }
+  const key = probeKey(provider)
+  if (!key) return { provider, ok: false, reason: "нет ключа" }
+  try {
+    const res = await fetchImpl(p.url, {
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    if (!res.ok) return { provider, ok: false, reason: `HTTP ${res.status}` }
+    const json = await res.json()
+    return { provider, ok: true, at: Date.now(), ...p.parse(json) }
+  } catch (e) {
+    return { provider, ok: false, reason: e?.message ?? String(e) }
+  }
+}
+
 export const LIMITS = {
   apinex: { dailyTokens: 10_000_000, rpm: 5 },
   beatapi: { dailyTokens: null, rpm: 1, rpmAfterTopup: 10 },
@@ -73,6 +143,28 @@ export class Tracker {
     this.save()
   }
 
+  /** Опросить всех провайдеров и записать живое состояние. */
+  async refresh(opts = {}) {
+    const results = {}
+    for (const provider of Object.keys(PROBES)) {
+      const r = await probeProvider(provider, opts)
+      results[provider] = r
+      if (r.ok) {
+        const p = (this.state.providers[provider] ||= {
+          tokensUsed: 0,
+          failures: 0,
+          exhausted: false,
+          kinds: [],
+        })
+        p.live = r
+        if (r.exhausted) p.exhausted = true
+      }
+    }
+    this.state.probedAt = Date.now()
+    this.save()
+    return results
+  }
+
   /** Current status of every known provider. */
   status(now = new Date()) {
     const day = today(now)
@@ -81,8 +173,10 @@ export class Tracker {
       const p = this.state.providers[id] || { tokensUsed: 0, failures: 0, exhausted: false, kinds: [] }
       const left = limit.dailyTokens ? Math.max(0, limit.dailyTokens - p.tokensUsed) : null
       const ratio = limit.dailyTokens ? left / limit.dailyTokens : null
+      const live = p.live
       out.push({
         provider: id,
+        live: live ? { at: live.at, balanceUsd: live.balanceUsd, rpm: live.rpm, plan: live.plan } : null,
         tokensUsed: p.tokensUsed,
         dailyTokens: limit.dailyTokens,
         left,
