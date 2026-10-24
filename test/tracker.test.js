@@ -29,3 +29,41 @@ test("warns when the pool is low", () => {
   t.spend("apinex", 9_000_000)
   assert.ok(t.warning().includes("apinex"))
 })
+import { readFileSync } from "node:fs"
+import { execFileSync } from "node:child_process"
+import { fileURLToPath } from "node:url"
+
+const BIN = join(fileURLToPath(new URL("..", import.meta.url)), "bin/free-tier-tracker.js")
+
+test("export writes one JSON object per day and matches documented schema", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ftt-export-"))
+  const statePath = join(dir, "state.json")
+  const exportPath = join(dir, "dashboard.json")
+
+  const t = new Tracker(statePath)
+  t.state.history = [{ day: "2026-04-19", providers: { apinex: { tokensUsed: 100_000, failures: 0, exhausted: false, kinds: [] } } }]
+  t.spend("apinex", 250_000)
+  t.note("groq", "rpm")
+
+  const days = t.export(exportPath)
+  assert.equal(Array.isArray(days), true)
+  assert.equal(days.length, 2)
+  assert.equal(days[0].day, "2026-04-19")
+  assert.equal(days[0].totalTokensUsed, 100_000)
+  assert.equal(days[1].totalTokensUsed, 250_000)
+  assert.equal(days[1].exhaustedCount, 1)
+
+  const disk = JSON.parse(readFileSync(exportPath, "utf8"))
+  assert.equal(disk.length, 2)
+  for (const d of disk) {
+    assert.match(d.day, /^\d{4}-\d{2}-\d{2}$/)
+    assert.equal(typeof d.totalTokensUsed, "number")
+    assert.equal(typeof d.exhaustedCount, "number")
+    assert.equal(Array.isArray(d.providers), true)
+  }
+
+  const cliOut = execFileSync("node", [BIN, "--export"], { encoding: "utf8" })
+  const parsedCli = JSON.parse(cliOut)
+  assert.equal(Array.isArray(parsedCli), true)
+  assert.ok(parsedCli.length >= 1)
+})

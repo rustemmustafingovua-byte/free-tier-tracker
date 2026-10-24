@@ -124,3 +124,39 @@ Paid tiers of the hosted services are billed per call in USDC (x402) — no acco
 ## License
 
 MIT © rustemmustafingovua-byte
+
+## Dashboard Export (`--export`)
+
+Export the ledger to a single dashboard-friendly JSON file containing one JSON object per UTC day:
+
+```bash
+free-tier-tracker --export ./dashboard.json
+```
+
+### Export Schema
+
+The exported file is a JSON array sorted by `day` (`YYYY-MM-DD`), with one object per day:
+
+```json
+[
+  {
+    "day": "2026-04-20",
+    "totalTokensUsed": 250000,
+    "exhaustedCount": 1,
+    "providers": [
+      {
+        "provider": "apinex",
+        "live": null,
+        "tokensUsed": 250000,
+        "dailyTokens": 10000000,
+        "left": 9750000,
+        "ratio": 0.975,
+        "rpm": 10,
+        "exhausted": false,
+        "kinds": [],
+        "warn": false
+      }
+    ]
+  }
+]
+```
