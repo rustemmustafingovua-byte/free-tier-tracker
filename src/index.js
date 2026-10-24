@@ -105,11 +105,16 @@ export function detectLimit(text) {
 export class Tracker {
   constructor(path = DEFAULT_STATE) {
     this.path = path
-    this.state = { day: today(), providers: {} }
+    this.state = { day: today(), providers: {}, history: [] }
     if (existsSync(path)) {
       try {
         const raw = JSON.parse(readFileSync(path, "utf8"))
-        if (raw.day === this.state.day) this.state = raw
+        const history = Array.isArray(raw.history) ? raw.history : []
+        if (raw.day === this.state.day) {
+          this.state = { ...raw, history }
+        } else if (raw.day) {
+          this.state.history = [...history.filter((h) => h.day !== raw.day), { day: raw.day, providers: raw.providers || {} }]
+        }
       } catch {}
     }
   }
@@ -199,6 +204,69 @@ export class Tracker {
       else if (p.warn) lines.push(`${p.provider}: only ${Math.round(p.ratio * 100)}% of the daily pool left`)
     }
     return lines.join("\n")
+  }
+
+  /** Export the ledger to a dashboard-friendly JSON array (one JSON object per day). */
+  export(outPath, now = new Date()) {
+    const byDay = new Map()
+    if (outPath && existsSync(outPath)) {
+      try {
+        const existing = JSON.parse(readFileSync(outPath, "utf8"))
+        if (Array.isArray(existing)) {
+          for (const row of existing) {
+            if (row?.day) byDay.set(row.day, row)
+          }
+        }
+      } catch {}
+    }
+    for (const h of this.state.history || []) {
+      if (h?.day) {
+        const snap = this._buildDayObject(h.day, h.providers || {})
+        byDay.set(h.day, snap)
+      }
+    }
+    const current = this._buildDayObject(this.state.day || today(now), this.state.providers || {})
+    byDay.set(current.day, current)
+    const days = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day))
+    if (outPath) {
+      mkdirSync(join(outPath, ".."), { recursive: true })
+      writeFileSync(outPath, JSON.stringify(days, null, 2))
+    }
+    return days
+  }
+
+  _buildDayObject(day, providersMap) {
+    const providers = []
+    let totalTokensUsed = 0
+    let exhaustedCount = 0
+    const ids = new Set([...Object.keys(LIMITS), ...Object.keys(providersMap || {})])
+    for (const id of ids) {
+      const limit = LIMITS[id] || { dailyTokens: null, rpm: null }
+      const p = providersMap[id] || { tokensUsed: 0, failures: 0, exhausted: false, kinds: [] }
+      const left = limit.dailyTokens ? Math.max(0, limit.dailyTokens - p.tokensUsed) : null
+      const ratio = limit.dailyTokens ? left / limit.dailyTokens : null
+      const live = p.live
+      totalTokensUsed += p.tokensUsed || 0
+      if (p.exhausted) exhaustedCount += 1
+      providers.push({
+        provider: id,
+        live: live ? { at: live.at, balanceUsd: live.balanceUsd, rpm: live.rpm, plan: live.plan } : null,
+        tokensUsed: p.tokensUsed || 0,
+        dailyTokens: limit.dailyTokens,
+        left,
+        ratio,
+        rpm: limit.rpm,
+        exhausted: Boolean(p.exhausted),
+        kinds: p.kinds || [],
+        warn: limit.dailyTokens ? ratio !== null && ratio < 0.2 && !p.exhausted : false,
+      })
+    }
+    return {
+      day,
+      totalTokensUsed,
+      exhaustedCount,
+      providers,
+    }
   }
 
   save() {

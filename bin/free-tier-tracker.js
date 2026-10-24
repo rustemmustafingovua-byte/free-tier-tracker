@@ -14,7 +14,7 @@ const ok = (s) => `\x1b[32m${s}\x1b[0m`
 const warn = (s) => `\x1b[33m${s}\x1b[0m`
 
 // --- CLI shell: --help / --version -------------------------------------------
-const HELP = "free-tier-tracker — Know your free quota before it runs out.\n\nUSAGE\n  free-tier-tracker status\n  free-tier-tracker note \"Free 10M tokens used\"\n  free-tier-tracker spend apinex 12000\n  free-tier-tracker reset apinex\n  free-tier-tracker watch\n\nCOMMANDS / OPTIONS\n  status                     what is left of every known free tier\n  note <message>             learn a limit failure from a message\n  spend <provider> <tokens>  record normal usage\n  reset <provider>           clear the exhausted flag\n  watch                      probe the APInex pool in one request\n\nState is kept in ~/.config/free-tier-tracker/state.json.\n\nMIT · https://github.com/rustemmustafingovua-byte"
+const HELP = "free-tier-tracker — Know your free quota before it runs out.\n\nUSAGE\n  free-tier-tracker status\n  free-tier-tracker note \"Free 10M tokens used\"\n  free-tier-tracker spend apinex 12000\n  free-tier-tracker reset apinex\n  free-tier-tracker watch\n  free-tier-tracker --export [file]\n\nCOMMANDS / OPTIONS\n  status                     what is left of every known free tier\n  note <message>             learn a limit failure from a message\n  spend <provider> <tokens>  record normal usage\n  reset <provider>           clear the exhausted flag\n  watch                      probe the APInex pool in one request\n  --export [file]            export dashboard-friendly JSON (one object per day)\n\nState is kept in ~/.config/free-tier-tracker/state.json.\n\nMIT · https://github.com/rustemmustafingovua-byte"
 const VERSION = "0.1.0"
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(HELP)
@@ -99,6 +99,13 @@ switch (cmd) {
       tracker.note("apinex", "daily_tokens")
       console.log("pool exhausted:", body?.error?.message ?? res.status)
     }
+    break
+  }
+  case "--export":
+  case "export": {
+    const outPath = argv[1] && !argv[1].startsWith("-") ? argv[1] : undefined
+    const days = tracker.export(outPath)
+    console.log(JSON.stringify(days, null, 2))
     break
   }
   default:
