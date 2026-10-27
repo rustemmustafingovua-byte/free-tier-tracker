@@ -1,143 +1,58 @@
 <div align="center">
 
-<img src="docs/social-preview.png" alt="free-tier-tracker" width="100%">
+# Free Tier Tracker
 
-# free-tier-tracker
-
-**Know your free quota before it runs out.**
-
-[![CI](https://github.com/rustemmustafingovua-byte/free-tier-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/rustemmustafingovua-byte/free-tier-tracker/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/free-tier-tracker?color=cb3837&logo=npm)](https://www.npmjs.com/package/free-tier-tracker)
-[![license](https://img.shields.io/badge/license-MIT-8b949e?logo=opensourceinitiative)](./LICENSE)
-[![node](https://img.shields.io/badge/node-%3E%3D20-3c873a?logo=node.js)](https://nodejs.org)
-[![paid](https://img.shields.io/badge/USDC-0x8aC6a229f254980CCd3Dd35CF5E1B7c08880B40E-2775ca?logo=ethereum)](https://base.org)
-
-[**Docs**](https://rustemmustafingovua-byte.github.io/free-tier-tracker/) · [Issues](https://github.com/rustemmustafingovua-byte/free-tier-tracker/issues) · [Discussions](https://github.com/rustemmustafingovua-byte/free-tier-tracker/discussions)
+[![CI](https://github.com/rustemmustafingovua-byte/free-tier-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/rustemmustafingovua-byte/free-tier-tracker/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/free-tier-tracker?color=cb3837&logo=npm)](https://www.npmjs.com/package/free-tier-tracker) [![license](https://img.shields.io/badge/license-MIT-8b949e?logo=opensourceinitiative)](./LICENSE)
 
 </div>
 
 ---
 
-Free tiers do not warn you: the model just answers 402 in the middle of a run. free-tier-tracker keeps a local ledger of what each provider has left, learns from the failures you already hit, and tells the agent to stop using a provider that is done for the day.
-
-### v0.2.0 — live quota, not manual notes
-
-The tracker now asks the providers directly instead of waiting for a failure:
-
-```bash
-free-tier-tracker refresh   # опросить APInex и BeatAPI
-free-tier-tracker status    # показать остаток, rpm и предупреждения
-```
-
-| Provider | Source | What we read |
-|
-
-⭐ **Star us on GitHub** — it helps others find the project.
----|---|---|
-| APInex | `GET /v1/balance` | balance, rpm, plan, spent |
-| BeatAPI | `GET /v1/usage` | credit balance, spent, tasks |
-
-Keys are read from `APINEX_API_KEY` / `BEATAPI_API_KEY`, or from
-`~/.config/opencode/secrets/{apinex,beatapi}.key` if the environment is empty.
-No key — no crash: the tracker says it could not reach the provider and keeps the
-last known numbers.
-
-## Quick Start
-
-```bash
-git clone https://github.com/rustemmustafingovua-byte/free-tier-tracker.git
-cd free-tier-tracker && npm install
-npm test
-```
-
-## Install
-
-```bash
-# tarball из релиза: без токена и без npm-логина
-npm i -g https://github.com/rustemmustafingovua-byte/free-tier-tracker/releases/download/v0.1.0/free-tier-tracker-0.1.0.tgz
-```
-
-<details>
-<summary>Через GitHub Packages (нужен токен со scope read:packages)</summary>
-
-```bash
-npm i -g @rustemmustafingovua-byte/free-tier-tracker --registry=https://npm.pkg.github.com
-```
-
-</details>
-## What it does
-
-| | |
-|---|---|
-| **A local ledger per provider** | tokens used, failures, exhaustion |
-| **Learns from real failures** | recognises 402 / 429 / quota messages |
-| **Warnings before exhaustion** | the agent is told which provider to avoid |
-| **A pool probe** | watch checks the APInex pool in one request |
-
-
-## Usage
-
-```bash
-free-tier-tracker status
-free-tier-tracker note "Free 10M tokens used"
-free-tier-tracker watch
-```
-
-## CLI
-
-```
-free-tier-tracker — Know your free quota before it runs out.
-
-USAGE
-  free-tier-tracker status
-  free-tier-tracker note "Free 10M tokens used"
-  free-tier-tracker spend apinex 12000
-  free-tier-tracker reset apinex
-  free-tier-tracker watch
-
-COMMANDS / OPTIONS
-  status                     what is left of every known free tier
-  note <message>             learn a limit failure from a message
-  spend <provider> <tokens>  record normal usage
-  reset <provider>           clear the exhausted flag
-  watch                      probe the APInex pool in one request
-
-State is kept in ~/.config/free-tier-tracker/state.json.
-
-MIT · https://github.com/rustemmustafingovua-byte
-```
-
-## Part of a portfolio
-
-| Project | What it does |
-|---|---|
-| [`opencode-free-stack`](https://github.com/rustemmustafingovua-byte/opencode-free-stack) | route to free models, fall back automatically |
-| [`free-web-mcp`](https://github.com/rustemmustafingovua-byte/free-web-mcp) | web search for agents, zero credits |
-| [`agent-x402`](https://github.com/rustemmustafingovua-byte/agent-x402) | pay per API call in USDC with a spend policy |
-
-## Donate
-
-MIT, forever. USDC on Base:
-
-```
-0x8aC6a229f254980CCd3Dd35CF5E1B7c08880B40E
-```
-
-## Support
-
-Every tool here is MIT and free. If it saved you time, you can support the work:
-
-- **USDC (Base):** `0x8aC6a229f254980CCd3Dd35CF5E1B7c08880B40E`
-- **GitHub Sponsors:** https://github.com/sponsors/rustemmustafingovua-byte
-
-Paid tiers of the hosted services are billed per call in USDC (x402) — no accounts, no keys.
-
-## Monetization
-
-This project earns through x402 micropayments, API key tiers, and hosted subscriptions. See package.json `funding` field and the live deployment for pay-per-call pricing.
+**Know your free quota before it runs out. free-tier-tracker keeps a local ledger of what each provider has left and tells the agent to stop using a provider that is done for the day.**
 
 ---
 
-## License
+⭐ **Star us on GitHub** if this project helps you build better agents!
+
+---
+
+## 🚀 Быстрый старт
+
+```bash
+git clone https://github.com/rustemmustafingovua-byte/free-tier-tracker
+cd free-tier-tracker && npm install
+free-tier-tracker status
+```
+
+---
+
+## 🎯 Демо
+
+```bash
+free-tier-tracker status
+free-tier-tracker refresh
+free-tier-tracker watch
+```
+
+---
+
+## 💰 Монетизация
+
+- **Hosted tracker**: управляемый сервис с веб-дашбордом для команд
+- **Custom providers**: добавление новых free-tier провайдеров под заказ
+- **Enterprise integrations**: встраивание трекера в CI/CD и agent-платформы
+- **Alerts & webhooks**: плагины для оповещений в Slack/Telegram/Discord
+
+---
+
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feat/amazing-thing`)
+3. Commit your changes (`git commit -m 'feat: add amazing thing'`)
+4. Push to the branch (`git push origin feat/amazing-thing`)
+5. Open a Pull Request
+
+Bug reports and feature requests are welcome on the [Issues](https://github.com/rustemmustafingovua-byte/free-tier-tracker/issues) page.
 
 MIT © rustemmustafingovua-byte
