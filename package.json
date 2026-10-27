@@ -39,5 +39,10 @@
   "bugs": {
     "url": "https://github.com/rustemmustafingovua-byte/free-tier-tracker/issues"
   },
-  "homepage": "https://github.com/rustemmustafingovua-byte/free-tier-tracker"
+  "homepage": "https://github.com/rustemmustafingovua-byte/free-tier-tracker",
+  "funding": {
+    "custom": [
+      "https://github.com/sponsors/rustemmustafingovua-byte"
+    ]
+  }
 }

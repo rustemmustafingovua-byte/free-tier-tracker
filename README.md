@@ -30,7 +30,10 @@ free-tier-tracker status    # показать остаток, rpm и преду
 ```
 
 | Provider | Source | What we read |
-|---|---|---|
+|
+
+⭐ **Star us on GitHub** — it helps others find the project.
+---|---|---|
 | APInex | `GET /v1/balance` | balance, rpm, plan, spent |
 | BeatAPI | `GET /v1/usage` | credit balance, spent, tasks |
 
@@ -38,6 +41,14 @@ Keys are read from `APINEX_API_KEY` / `BEATAPI_API_KEY`, or from
 `~/.config/opencode/secrets/{apinex,beatapi}.key` if the environment is empty.
 No key — no crash: the tracker says it could not reach the provider and keeps the
 last known numbers.
+
+## Quick Start
+
+```bash
+git clone https://github.com/rustemmustafingovua-byte/free-tier-tracker.git
+cd free-tier-tracker && npm install
+npm test
+```
 
 ## Install
 
@@ -120,6 +131,12 @@ Every tool here is MIT and free. If it saved you time, you can support the work:
 - **GitHub Sponsors:** https://github.com/sponsors/rustemmustafingovua-byte
 
 Paid tiers of the hosted services are billed per call in USDC (x402) — no accounts, no keys.
+
+## Monetization
+
+This project earns through x402 micropayments, API key tiers, and hosted subscriptions. See package.json `funding` field and the live deployment for pay-per-call pricing.
+
+---
 
 ## License
 
